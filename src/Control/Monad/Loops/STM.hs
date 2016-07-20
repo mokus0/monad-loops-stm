@@ -39,3 +39,15 @@ waitForJust m = fmap fromJust (waitFor isJust m)
 -- Returns the winner.
 waitForEvent :: (a -> Bool) -> TChan a -> STM a
 waitForEvent p events = waitFor p (readTChan events)
+
+-- |'waitForEvent' a value satisfying a condition to come out of a
+-- 'Control.Concurrent.STM.TChan', reading and discarding (really) everything else.
+-- Returns the winner.
+waitForEvent' :: (a -> Bool) -> TChan a -> STM a
+waitForEvent' p chan = checkEvent
+    where
+      checkEvent = do
+        event <- readTChan chan
+        if p event
+            then return event
+            else checkEvent
